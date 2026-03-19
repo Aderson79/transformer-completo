@@ -11,9 +11,19 @@ def _masked_self_attention(y):
 	d_model = y.shape[-1]
 	seq_len = y.shape[1]
 
-	w_q = np.random.randn(d_model, d_model)
-	w_k = np.random.randn(d_model, d_model)
-	w_v = np.random.randn(d_model, d_model)
+	if not hasattr(_masked_self_attention, "_weight_cache"):
+		_masked_self_attention._weight_cache = {}
+
+	if d_model not in _masked_self_attention._weight_cache:
+		_masked_self_attention._weight_cache[d_model] = {
+			"w_q": np.random.randn(d_model, d_model),
+			"w_k": np.random.randn(d_model, d_model),
+			"w_v": np.random.randn(d_model, d_model),
+		}
+
+	w_q = _masked_self_attention._weight_cache[d_model]["w_q"]
+	w_k = _masked_self_attention._weight_cache[d_model]["w_k"]
+	w_v = _masked_self_attention._weight_cache[d_model]["w_v"]
 
 	q = y @ w_q
 	k = y @ w_k
@@ -26,7 +36,15 @@ def _masked_self_attention(y):
 #Função criada com ajuda de IA para obter as probabilidades 
 def _project_to_vocabulary(decoder_output, vocab_size=VOCAB_SIZE):
 	d_model = decoder_output.shape[-1]
-	output_projection = np.random.randn(d_model, vocab_size) * 0.02
+	cache_key = (d_model, vocab_size)
+
+	if not hasattr(_project_to_vocabulary, "_weight_cache"):
+		_project_to_vocabulary._weight_cache = {}
+
+	if cache_key not in _project_to_vocabulary._weight_cache:
+		_project_to_vocabulary._weight_cache[cache_key] = np.random.randn(d_model, vocab_size) * 0.02
+
+	output_projection = _project_to_vocabulary._weight_cache[cache_key]
 	logits = decoder_output @ output_projection
 	probabilities = softmax(logits)
 	return probabilities

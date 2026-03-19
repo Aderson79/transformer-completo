@@ -24,9 +24,19 @@ def SelfAttention(X):
     d_model = X.shape[-1]
     d_k = d_model
 
-    W_Q = np.random.randn(d_model, d_k)
-    W_K = np.random.randn(d_model, d_k)
-    W_V = np.random.randn(d_model, d_k)
+    if not hasattr(SelfAttention, "_weight_cache"):
+        SelfAttention._weight_cache = {}
+
+    if d_model not in SelfAttention._weight_cache:
+        SelfAttention._weight_cache[d_model] = {
+            "W_Q": np.random.randn(d_model, d_k),
+            "W_K": np.random.randn(d_model, d_k),
+            "W_V": np.random.randn(d_model, d_k),
+        }
+
+    W_Q = SelfAttention._weight_cache[d_model]["W_Q"]
+    W_K = SelfAttention._weight_cache[d_model]["W_K"]
+    W_V = SelfAttention._weight_cache[d_model]["W_V"]
 
     Q = X @ W_Q
     K = X @ W_K
@@ -47,10 +57,22 @@ def LayerNorm(X):
 def FFN(X):
     d_ff=4 * X.shape[-1] 
     d_model = X.shape[-1]
-    W1 = np.random.randn(d_model, d_ff)
-    b1 = np.random.randn(d_ff)
-    W2 = np.random.randn(d_ff, d_model)
-    b2 = np.random.randn(d_model)
+
+    if not hasattr(FFN, "_weight_cache"):
+        FFN._weight_cache = {}
+
+    if d_model not in FFN._weight_cache:
+        FFN._weight_cache[d_model] = {
+            "W1": np.random.randn(d_model, d_ff),
+            "b1": np.random.randn(d_ff),
+            "W2": np.random.randn(d_ff, d_model),
+            "b2": np.random.randn(d_model),
+        }
+
+    W1 = FFN._weight_cache[d_model]["W1"]
+    b1 = FFN._weight_cache[d_model]["b1"]
+    W2 = FFN._weight_cache[d_model]["W2"]
+    b2 = FFN._weight_cache[d_model]["b2"]
 
     aux = np.maximum(0, X @ W1 + b1)  
     ffn_output = aux @ W2 + b2
